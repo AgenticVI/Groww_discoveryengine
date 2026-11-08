@@ -66,10 +66,10 @@ a{color:var(--green-ink)}a:hover{color:var(--green-hov)}
       <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 18px">
         <div style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 20px">
           <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute)">Contains words
-            <input id="wq" type="text" onInput="{{onQ}}" placeholder="e.g. autopay, uninstall, returns" autocomplete="off" style="font: 500 15px 'Figtree', sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); background: var(--soft); border: 1px solid var(--input-line); border-radius: 10px; padding: 11px 14px; outline-offset: 2px">
+            <input id="wq" type="text" onInput="{{onQ}}" onKeyDown="{{onKey}}" placeholder="e.g. autopay, uninstall, returns" autocomplete="off" style="font: 500 15px 'Figtree', sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); background: var(--soft); border: 1px solid var(--input-line); border-radius: 10px; padding: 11px 14px; outline-offset: 2px">
           </label>
           <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute)">Leave out words
-            <input id="wx" type="text" onInput="{{onX}}" placeholder="e.g. referral, ipo" autocomplete="off" style="font: 500 15px 'Figtree', sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); background: var(--soft); border: 1px solid var(--input-line); border-radius: 10px; padding: 11px 14px; outline-offset: 2px">
+            <input id="wx" type="text" onInput="{{onX}}" onKeyDown="{{onKey}}" placeholder="e.g. referral, ipo" autocomplete="off" style="font: 500 15px 'Figtree', sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); background: var(--soft); border: 1px solid var(--input-line); border-radius: 10px; padding: 11px 14px; outline-offset: 2px">
           </label>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center">
@@ -79,6 +79,7 @@ a{color:var(--green-ink)}a:hover{color:var(--green-hov)}
               <button type="button" class="tb {{m.on}}" style="padding: 6px 14px; font-size: 13px" onClick="{{m.pick}}">{{m.label}}</button>
             </sc-for>
           </div>
+          <button type="button" class="tb on" style="padding: 6px 16px; font-size: 13px" onClick="{{scrollRes}}">Search</button>
           <button type="button" class="tgl" style="padding: 6px 14px; font-size: 13px" onClick="{{clearAll}}">Clear filters</button>
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line2); padding-top: 16px">
@@ -107,7 +108,7 @@ a{color:var(--green-ink)}a:hover{color:var(--green-hov)}
         </sc-if>
       </div>
 
-      <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px">
+      <div id="res-head" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px">
         <span style="font-size: 18px; font-weight: 700; color: var(--ink)">{{resultHead}}</span>
         <span style="font-size: 13.5px; color: var(--sub)">{{resultSub}}</span>
       </div>
@@ -168,16 +169,31 @@ class Component extends DCLogic {
     try { localStorage.setItem('sde-theme', next); } catch (e) {}
   };
 
+  scrollRes = () => {
+    setTimeout(() => {
+      try {
+        const el = document.getElementById('res-head');
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (r.top > window.innerHeight * 0.55 || r.top < 0) window.scrollTo({ top: Math.max(0, r.top + window.pageYOffset - 90), behavior: 'smooth' });
+      } catch (e) {}
+    }, 120);
+  };
+  go = (patch) => { this.setState(patch); this.scrollRes(); };
+  onKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); this.scrollRes(); } };
+
   onQ = (e) => this.setState({ q: e.target.value, show: 20 });
   onX = (e) => this.setState({ x: e.target.value, show: 20 });
   clearAll = () => {
     try { const a = document.getElementById('wq'); if (a) a.value = ''; const b = document.getElementById('wx'); if (b) b.value = ''; } catch (e) {}
     this.setState({ q: '', x: '', mode: 'any', fs: -1, fa: -1, lim: false, show: 20 });
+    this.scrollRes();
   };
   addWord = (w) => {
     const q = (this.state.q.trim() + ' ' + w).trim();
     try { const a = document.getElementById('wq'); if (a) a.value = q; } catch (e) {}
     this.setState({ q, show: 20 });
+    this.scrollRes();
   };
 
   renderVals() {
@@ -360,31 +376,31 @@ class Component extends DCLogic {
     }) : [];
 
     const total = data ? data.rows.length : 0;
-    const pickMode = (m) => () => this.setState({ mode: m, show: 20 });
+    const pickMode = (m) => () => this.go({ mode: m, show: 20 });
 
     return {
       accent: this.props.accent ?? '#00D09C',
       theme: this.curTheme(),
       themeLabel: this.curTheme() === 'dark' ? 'Light mode' : 'Dark mode',
       toggleTheme: this.toggleTheme,
-      groups: G.map((g, i) => ({ name: g.name, on: i === gi ? 'on' : '', pick: () => this.setState({ g: i, s: 0 }) })),
+      groups: G.map((g, i) => ({ name: g.name, on: i === gi ? 'on' : '', pick: () => this.go({ g: i, s: 0 }) })),
       hasSegs,
-      segs: grp.segs.map((s, i) => ({ label: s[0], n: fmt(s[1]), on: i === si ? 'on' : '', pick: () => this.setState({ s: i }) })),
+      segs: grp.segs.map((s, i) => ({ label: s[0], n: fmt(s[1]), on: i === si ? 'on' : '', pick: () => this.go({ s: i }) })),
       colHead: hasSegs ? 'Share of this segment’s posts' : 'Segments facing it · % of their posts',
       cur: hasSegs
         ? { label: seg[0], sub: grp.name + ' · ' + fmt(seg[1]) + ' posts' + (seg[1] < 120 ? ' · small sample, read with care' : ''), note: NOTES[seg[0]] || '', hasNote: !!NOTES[seg[0]] }
         : { label: 'All segments', sub: 'Overall view. Choose a parameter above to look at one segment.', note: '', hasNote: false },
       areas,
       // filter section
-      onQ: this.onQ, onX: this.onX, clearAll: this.clearAll,
+      onQ: this.onQ, onX: this.onX, onKey: this.onKey, scrollRes: this.scrollRes, clearAll: this.clearAll,
       modes: [{ label: 'Any word', on: st.mode === 'any' ? 'on' : '', pick: pickMode('any') }, { label: 'All words', on: st.mode === 'all' ? 'on' : '', pick: pickMode('all') }],
       limOn: st.lim ? 'on' : '',
       limLabel: hasSegs ? (st.lim ? 'Only ' + seg[0] : 'Limit to ' + seg[0]) : '',
       toggleLim: () => this.setState({ lim: !st.lim, show: 20 }),
-      srcs: [{ label: 'All sources', n: data ? fmt(total) : '', on: st.fs < 0 ? 'on' : '', pick: () => this.setState({ fs: -1, show: 20 }) }]
-        .concat(data ? data.src.map((n, i) => ({ label: n, n: fmt(data._sc[i]), on: st.fs === i ? 'on' : '', pick: () => this.setState({ fs: i, show: 20 }) })) : []),
-      areaTabs: [{ label: 'All areas', n: '', on: st.fa < 0 ? 'on' : '', pick: () => this.setState({ fa: -1, show: 20 }) }]
-        .concat(AREAS.map((a, i) => ({ label: a.short, n: data ? fmt(data._ac[i]) : '', on: st.fa === i ? 'on' : '', pick: () => this.setState({ fa: i, show: 20 }) }))),
+      srcs: [{ label: 'All sources', n: data ? fmt(total) : '', on: st.fs < 0 ? 'on' : '', pick: () => this.go({ fs: -1, show: 20 }) }]
+        .concat(data ? data.src.map((n, i) => ({ label: n, n: fmt(data._sc[i]), on: st.fs === i ? 'on' : '', pick: () => this.go({ fs: i, show: 20 }) })) : []),
+      areaTabs: [{ label: 'All areas', n: '', on: st.fa < 0 ? 'on' : '', pick: () => this.go({ fa: -1, show: 20 }) }]
+        .concat(AREAS.map((a, i) => ({ label: a.short, n: data ? fmt(data._ac[i]) : '', on: st.fa === i ? 'on' : '', pick: () => this.go({ fa: i, show: 20 }) }))),
       hasTop: topWords.length > 0,
       topWords,
       loading: !data,

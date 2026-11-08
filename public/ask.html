@@ -90,7 +90,7 @@ a{color:var(--green-ink)}a:hover{color:var(--green-hov)}
         </div>
       </div>
 
-      <div aria-live="polite" style="border-top: 1px solid var(--line2); padding-top: 22px; display: flex; flex-direction: column; gap: 16px">
+      <div id="chat" aria-live="polite" style="border-top: 1px solid var(--line2); padding-top: 22px; display: flex; flex-direction: column; gap: 16px">
         <sc-for list="{{msgs}}" as="m" hint-placeholder-count="1">
           <sc-if value="{{m.isUser}}" hint-placeholder-val="{{ false }}">
             <div style="align-self: flex-end; max-width: 80%; background: var(--inv); color: #FFFFFF; padding: 12px 18px; border-radius: 16px 16px 4px 16px">{{m.text}}</div>
@@ -252,6 +252,20 @@ class Component extends DCLogic {
     };
   }
 
+  toChat() {
+    setTimeout(() => {
+      try {
+        const c = document.getElementById('chat');
+        if (!c || !c.children.length) return;
+        const k = c.children;
+        // the latest question sits just above the latest reply
+        const el = k.length > 1 ? k[k.length - 2] : k[0];
+        const top = el.getBoundingClientRect().top + window.pageYOffset - 90;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      } catch (e) {}
+    }, 80);
+  }
+
   nearest(q) {
     const A = this.answers();
     const lq = q.toLowerCase();
@@ -267,13 +281,13 @@ class Component extends DCLogic {
     const DOTS = { 'Reddit': '#E8683F', 'Play Store': '#00A37A', 'YouTube': '#D6403F', 'TradingQnA': '#5367FF', 'App Store': '#3B82F6' };
     const user = { isUser: true, isNotice: false, isAnswer: false, text: q };
     if (idx >= 0) {
-      this.setState({ msgs: [...this.state.msgs, user, this.answerMsg(idx, 'Pre-computed answer')] });
+      this.setState({ msgs: [...this.state.msgs, user, this.answerMsg(idx, 'Pre-computed answer')] }); this.toChat();
       return;
     }
     const wait = { isUser: false, isNotice: true, isAnswer: false, text: 'Searching the posts and writing an answer...' };
-    this.setState({ msgs: [...this.state.msgs, user, wait], busy: true });
+    this.setState({ msgs: [...this.state.msgs, user, wait], busy: true }); this.toChat();
     const base = this.state.msgs.slice(0, -1);
-    const replace = (m) => this.setState({ msgs: [...base, m], busy: false });
+    const replace = (m) => { this.setState({ msgs: [...base, m], busy: false }); this.toChat(); };
     try {
       const r = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) });
       const j = await r.json().catch(() => ({}));
