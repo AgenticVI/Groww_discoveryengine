@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SIP Discovery How It Works</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0;background:#0F1114;font-family:"Figtree","Segoe UI",system-ui,sans-serif}
+a{color:var(--green-ink)}a:hover{color:var(--green-hov)}
+:focus-visible{outline:2px solid #00A37A;outline-offset:2px}
+.sde{--page:#F4F6F9;--card:#FFFFFF;--soft:#F4F6F9;--hover:#F8FAFC;--foot:#FAFBFC;--hl:#F1FBF7;--mint-soft:#E3F8F1;--track:#EEF0F4;--track2:#E7EAF0;--chip:#F1F3F7;--red-soft:#FDEDE8;--amber-soft:#FCF3DF;--inv:#1F2335;--ghost:#CFF3E8;--ghost2:#7FE3C8;--blue-soft:#ECEEFF;--ink:#1F2335;--ink2:#2B2E3F;--body:#44475B;--sub:#5A5E70;--mute:#6B6F80;--green-ink:#00775A;--green-ink2:#00614A;--green-hov:#005C45;--red-ink:#B3361A;--amber-ink:#8A5A00;--blue-ink:#3342C4;--line:#E7EAF0;--line2:#EEF0F4;--line3:#F0F2F6;--line4:#DCE0E8;--line5:#E1E5EC;--line-hl:#CFEFE4;--hl-border:#BFEBDD;--input-line:#CBD1DC}
+.sde[data-theme="dark"]{--page:#0F1114;--card:#181A1F;--soft:#20232A;--hover:#1D2026;--foot:#14161A;--hl:#0F2A24;--mint-soft:#10362D;--track:#2A2E36;--track2:#2A2E36;--chip:#262A32;--red-soft:#3A2019;--amber-soft:#352A12;--inv:#2C313B;--ghost:#1E5246;--ghost2:#1E7F69;--blue-soft:#23264A;--ink:#F2F3F5;--ink2:#E4E6EB;--body:#C9CBD3;--sub:#A8ABB8;--mute:#8D909B;--green-ink:#2EE0B0;--green-ink2:#2EE0B0;--green-hov:#7BF0CB;--red-ink:#FF9C80;--amber-ink:#F0B545;--blue-ink:#A9B4FF;--line:#2A2D35;--line2:#262930;--line3:#22252B;--line4:#33373F;--line5:#2E3139;--line-hl:#1E5246;--hl-border:#1E5246;--input-line:#3A3F49;color-scheme:dark}
+.tgl{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line4);background:var(--card);color:var(--body);border-radius:99px;padding:8px 16px;font:600 13px "Figtree",sans-serif;cursor:pointer}
+.tgl:hover{background:var(--soft)}
+.nl{color:var(--body);text-decoration:none;font-weight:600;font-size:15px;padding:26px 2px 23px;border-bottom:3px solid transparent}
+.nl:hover{color:var(--green-ink)}
+.nl.on{color:var(--green-ink);border-bottom-color:#00D09C}
+.rowh:hover{background:var(--hover)}
+</style>
+</helmet>
+
+<div class="sde" data-theme="{{theme}}" style="min-height: 100vh; background: var(--page); color: var(--body); font-size: 15px; line-height: 1.55">
+
+  <header style="background: var(--card); box-shadow: 0 1px 0 var(--line), 0 4px 18px rgba(31,35,53,.04)">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 40px; min-height: 76px">
+      <a href="index.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none">
+        <span style="display: flex; align-items: center; background: white; border-radius: 10px; padding: 6px 12px"><img src="/img/groww.png" alt="Groww" style="display: block; height: 30px; width: auto"></span>
+        <span aria-hidden="true" style="width: 1px; height: 28px; background: var(--line4)"></span>
+        <span style="font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: var(--ink)">AI Discovery Engine</span>
+      </a>
+      <nav aria-label="Sections" style="display: flex; flex-wrap: wrap; gap: 0 32px; align-items: center">
+        <a class="nl" href="index.html">Dashboard</a>
+        <a class="nl" href="opportunities.html">Opportunity areas</a>
+        <a class="nl" href="ask.html">Ask the corpus</a>
+        <a class="nl" href="search.html">Search comments</a>
+        <a class="nl on" href="how-it-works.html" aria-current="page">How it works</a>
+      </nav>
+      <span style="margin-left: auto; font-size: 13px; color: var(--sub); background: var(--soft); border-radius: 99px; padding: 7px 14px">Posts dated Aug 2014 to Oct 2026</span>
+      <button type="button" class="tgl" onClick="{{toggleTheme}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>{{themeLabel}}</button>
+    </div>
+  </header>
+
+  <main style="max-width: 1180px; margin: 0 auto; padding: 44px 32px 96px; display: flex; flex-direction: column; gap: 44px">
+
+    <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--line5); padding-bottom: 28px">
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.2; font-weight: 700; letter-spacing: -.015em; color: var(--ink2); text-wrap: balance">From public posts to opportunity areas, and answers</h1>
+      <p style="margin: 0; max-width: 68ch; color: var(--sub); font-size: 16px">Every figure in the engine is computed from the same post-level file, so any number can be traced back to the posts behind it. The same posts also feed the Q&amp;A chatbot.</p>
+    </div>
+
+    <!-- collection -->
+    <section style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: var(--ink2)">How the data was collected <span style="color: var(--mute); font-weight: 500">(5 sources)</span></h2>
+      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); overflow: hidden">
+        <div style="padding: 22px 28px; border-bottom: 1px solid var(--line2)">
+          <p style="margin: 0; max-width: 78ch; color: var(--body)">All collection ran inside Claude. Where a ready-made scraper existed, Claude ran it through the <b style="color: var(--ink)">Apify connector</b>. Where there was no usable API, as with Reddit, Claude opened the pages in its own <b style="color: var(--ink)">browser</b> and read the posts and comments from there.</p>
+        </div>
+        <div style="overflow-x: auto">
+          <div style="min-width: 760px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr) 170px 120px; gap: 20px; padding: 16px 28px 12px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); border-bottom: 1px dashed var(--line4)">
+              <span>Source</span><span>What was collected</span><span>Method</span><span style="text-align: right">Posts kept</span>
+            </div>
+            <sc-for list="{{collect}}" as="c" hint-placeholder-count="5">
+              <div class="rowh" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr) 170px 120px; gap: 20px; align-items: center; padding: 16px 28px; border-top: 1px solid var(--line2)">
+                <span style="display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink)"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{c.dot}}"></span>{{c.src}}</span>
+                <div>
+                  <div style="color: var(--ink); font-weight: 500">{{c.what}}</div>
+                  <div style="font-size: 13px; color: var(--mute)">{{c.why}}</div>
+                </div>
+                <span style="justify-self: start; font-size: 12.5px; font-weight: 700; padding: 4px 12px; border-radius: 99px; background: {{c.bg}}; color: {{c.fg}}">{{c.method}}</span>
+                <span style="text-align: right; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums">{{c.n}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- flow chart -->
+    <section style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: var(--ink2)">The method as a flow <span style="color: var(--mute); font-weight: 500">(analysis pipeline and RAG chatbot)</span></h2>
+      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); overflow-x: auto">
+        <div style="min-width: 1060px; padding: 28px 32px 32px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 34px; row-gap: 72px; align-items: stretch">
+
+          <div style="grid-column: 1 / -1; margin-bottom: -44px; display: flex; align-items: center; gap: 10px">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute)">Analysis: coded, mapped, filtered and arranged by segment, then analysed into opportunity areas</span>
+            <span aria-hidden="true" style="flex: 1; height: 1px; background: var(--line2)"></span>
+          </div>
+
+          <!-- 1 Collect -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">1</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Collect</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">38,032</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">scraped</span></div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="font-size: 12.5px; color: var(--sub)"><span style="font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--mint-soft); color: var(--green-ink2)">Apify connector</span><br>Play Store, App Store, YouTube</div>
+              <div style="font-size: 12.5px; color: var(--sub)"><span style="font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--blue-soft); color: var(--blue-ink)">Claude browser</span><br>Reddit, TradingQnA</div>
+            </div>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- 2 Clean -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">2</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Clean</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">31,052</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">cleaned</span></div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Duplicates, promos and referral spam removed. Personal details scrubbed.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- 3 Keep relevant -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">3</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Keep what is about SIPs</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">25,169</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">relevant</span></div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Posts on SIPs, mutual funds, NAV, XIRR, mandates or redemption.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- 4 Code -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">4</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Code each post</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">3,767</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">read by AI</span></div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">A stratified sample read line by line, then each relevant post coded for the pain points it raises and who the writer is.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- 5 Map filter arrange -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">5</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Map, filter and arrange by segment</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">21</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">segments</span></div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Posts mapped to segments (intent, stage, source of money, age, influence), filtered and arranged so each segment can be compared.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- 6 Analyse -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px"><span style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; background: var(--mint-soft); color: var(--green-ink)">6</span><h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Analyse opportunity areas</h3></div>
+            <div style="display: flex; align-items: baseline; gap: 6px"><span style="font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums">7</span><span style="font-size: 12.5px; font-weight: 600; color: var(--mute)">opportunity areas</span></div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Pain points sized and ranked by how directly they break a SIP before month 12, overall and for each segment.</p>
+            <svg width="14" height="62" viewBox="0 0 14 62" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: calc(50% - 7px); bottom: -68px; color: var(--mute)"><path d="M7 1v53M2 49l5 6 5-6"/></svg>
+          </div>
+
+          <!-- RAG divider -->
+          <div style="grid-column: 1 / -1; margin-bottom: -36px; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span style="font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute)">Then: the RAG chatbot, built on the same coded posts</span>
+              <span aria-hidden="true" style="flex: 1; height: 1px; background: var(--line2)"></span>
+            </div>
+            <p style="margin: 0; max-width: 80ch; font-size: 14px; color: var(--sub)">The scraped posts, now coded and tagged, become the chatbot&#39;s knowledge base. They are stored as vectors so a question can find posts by meaning.</p>
+          </div>
+
+          <!-- B1 Coded posts -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Coded posts</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">The 25,169 relevant posts with their pain-point and segment tags, source, channel and date.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- B2 Chunk and embed -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Chunk and embed</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Each post becomes a passage and is turned into a vector.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- B3 Vector database -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Vector database</h3>
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--mute)">Knowledge base</div>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Holds the scraped, coded posts as embeddings, searchable by meaning.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- B4 Retrieve -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Retrieve</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">A question pulls the closest posts, along with their tags.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- B5 Generate -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Generate the answer</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">Gemini writes the answer from those posts only.</p>
+            <svg width="30" height="14" viewBox="0 0 30 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: -32px; top: calc(50% - 7px); color: var(--mute)"><path d="M1 7h25M21 2l6 5-6 5"/></svg>
+          </div>
+
+          <!-- B6 Chatbot -->
+          <div style="position: relative; background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--ink)">Ask the corpus</h3>
+            <p style="margin: 0; font-size: 13px; color: var(--sub); line-height: 1.45">The chatbot replies with the answer and the cited posts.</p>
+            <a href="ask.html" style="font-size: 13px; font-weight: 700; text-decoration: none">Open the chatbot</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- definitions -->
+    <section style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: var(--ink2)">Definitions <span style="color: var(--mute); font-weight: 500">(4)</span></h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 16px">
+        <sc-for list="{{defs}}" as="d" hint-placeholder-count="4">
+          <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); padding: 22px 24px; display: flex; flex-direction: column; gap: 6px">
+            <h3 style="margin: 0; font-size: 16.5px; font-weight: 700; color: var(--ink)">{{d.t}}</h3>
+            <p style="margin: 0; color: var(--sub)">{{d.d}}</p>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- pain tags -->
+    <section style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: var(--ink2)">Pain-point tags <span style="color: var(--mute); font-weight: 500">(13)</span></h2>
+      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); overflow-x: auto">
+        <div style="min-width: 560px">
+          <div style="display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 20px; padding: 18px 24px 14px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); border-bottom: 1px dashed var(--line4)">
+            <span>Tag</span><span>Pain point</span>
+          </div>
+          <sc-for list="{{tags}}" as="t" hint-placeholder-count="13">
+            <div class="rowh" style="display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 20px; align-items: center; padding: 14px 24px; border-top: 1px solid var(--line2)">
+              <span style="justify-self: start; font-size: 12.5px; font-weight: 800; padding: 3px 10px; border-radius: 99px; background: var(--mint-soft); color: var(--green-ink)">{{t.id}}</span>
+              <span style="color: var(--ink); font-weight: 500">{{t.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 14px 24px; border-top: 1px solid var(--line2); background: var(--foot); font-size: 13px; color: var(--mute)">Each relevant post can carry several tags.</div>
+      </div>
+    </section>
+
+    <!-- caveats -->
+    <section style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 22px; font-weight: 600; color: var(--ink2)">Read the numbers with care</h2>
+      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(31,35,53,.04), 0 8px 24px rgba(31,35,53,.05); padding: 14px 28px">
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+          <sc-for list="{{caveats}}" as="c" hint-placeholder-count="4">
+            <li style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line3); color: var(--ink2)"><span style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: {{accent}}; margin-top: 9px"></span><span>{{c.t}}</span></li>
+          </sc-for>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Theme"},"accent":{"editor":"color","default":"#00D09C","options":["#00D09C","#5367FF","#FF8A5B","#1F2335"],"section":"Theme"},"$preview":{"width":1440,"height":3200}}'>
+class Component extends DCLogic {
+  state = { theme: null };
+
+  curTheme() { return this.state.theme || this.props.theme || 'dark'; }
+
+  componentDidMount() {
+    try { const t = localStorage.getItem('sde-theme'); if (t === 'dark' || t === 'light') this.setState({ theme: t }); } catch (e) {}
+    this._onStore = (ev) => { if (ev.key === 'sde-theme' && (ev.newValue === 'dark' || ev.newValue === 'light')) this.setState({ theme: ev.newValue }); };
+    try { window.addEventListener('storage', this._onStore); } catch (e) {}
+  }
+
+  componentWillUnmount() {
+    try { window.removeEventListener('storage', this._onStore); } catch (e) {}
+  }
+
+  toggleTheme = () => {
+    const next = this.curTheme() === 'dark' ? 'light' : 'dark';
+    this.setState({ theme: next });
+    try { localStorage.setItem('sde-theme', next); } catch (e) {}
+  };
+
+  renderVals() {
+    const defs = [
+      { t: 'Active SIP', d: 'At least one successful instalment in the last 30 days.' },
+      { t: 'First-time investor post', d: 'The writer says they are new, just started, on their first SIP, or a fresher.' },
+      { t: 'Stop / pause conversation', d: 'Any post discussing stopping, pausing, skipping or cancelling a SIP. A narrower set of posts where the writer says they stopped is used for “Why people say they stopped”.' },
+      { t: 'Segment', d: 'A group defined by one parameter the writer reveals, such as intent or source of money. Segments overlap: one post can belong to several.' }
+    ];
+
+    const P = [
+      ['P1', 'SIP instalments fail / get cancelled (autopay, mandate, debit without units)'],
+      ['P2', 'No flexible pause; cannot change amount/date without cancelling'],
+      ['P3', 'Income or expense shock forces SIP stop/reduction'],
+      ['P4', 'No emergency buffer before starting SIP'],
+      ['P5', 'Flat / negative returns in the first months-years erode conviction'],
+      ['P6', 'Fear and panic during market falls; checking returns daily'],
+      ['P7', 'Overwhelmed by fund choice; too many overlapping funds'],
+      ['P8', 'Unsure whether to continue - seeks answers on Reddit/YouTube/family'],
+      ['P9', 'Hidden costs, commissions, redemption delays, poor support'],
+      ['P10', 'Portfolio numbers wrong / unclear (XIRR, NAV, units)'],
+      ['P11', 'Short-horizon money placed in volatile equity / small-mid caps'],
+      ['P12', 'Confusion over lock-in, exit load and capital-gains tax'],
+      ['P13', 'Irregular income does not fit a fixed monthly SIP']
+    ].map(([id, name]) => ({ id, name }));
+
+    const caveats = [
+      'Counts come from phrase matching on post text, so treat them as directional and use them to compare areas, not as exact prevalence.',
+      'Public posters are more vocal and more complaint-prone than a typical investor. Figures describe this population, not a platform’s customer base.',
+      'App-store reviews rarely say who the writer is, so payment and app issues are under-represented in segment views.',
+      'Small segments (under about 120 posts) are flagged. Their percentages move a lot with a few posts.'
+    ].map((t) => ({ t }));
+
+    const APIFY = { method: 'Apify connector', bg: 'var(--mint-soft)', fg: 'var(--green-ink2)' };
+    const BROWSER = { method: 'Claude browser', bg: 'var(--blue-soft)', fg: 'var(--blue-ink)' };
+    const collect = [
+      { src: 'Reddit', dot: '#E8683F', what: 'Posts and comments from 5 investing subreddits', why: 'Reddit offers no usable API for this, so the pages were read in the browser.', n: '16,180', ...BROWSER },
+      { src: 'Play Store', dot: '#00A37A', what: 'Reviews of 16 investing apps', why: 'Collected with a ready-made scraper.', n: '8,689', ...APIFY },
+      { src: 'YouTube', dot: '#D6403F', what: 'Comments on 204 SIP videos', why: 'Collected with a ready-made scraper.', n: '4,983', ...APIFY },
+      { src: 'TradingQnA', dot: '#5367FF', what: 'Question-and-answer threads', why: 'No API, so the threads were read in the browser.', n: '1,154', ...BROWSER },
+      { src: 'App Store', dot: '#3B82F6', what: 'Reviews of investing apps', why: 'Collected with a ready-made scraper.', n: '46', ...APIFY }
+    ];
+
+    return { accent: this.props.accent ?? '#00D09C', theme: this.curTheme(), themeLabel: this.curTheme() === 'dark' ? 'Light mode' : 'Dark mode', toggleTheme: this.toggleTheme, defs, tags: P, caveats, collect };
+  }
+}
+</script>
+</body>
+</html>

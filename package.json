@@ -1,0 +1,12 @@
+{
+  "name": "groww-ai-discovery-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Groww App AI Discovery Engine: SIP research dashboard with a Gemini-powered Q&A over coded public posts.",
+  "scripts": {
+    "ingest": "node scripts/ingest.mjs",
+    "dev": "vercel dev"
+  },
+  "engines": { "node": ">=18" }
+}
