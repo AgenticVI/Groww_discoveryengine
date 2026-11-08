@@ -293,7 +293,18 @@ class Component extends DCLogic {
       const j = await r.json().catch(() => ({}));
       if (r.status === 429) { replace({ isUser: false, isNotice: true, isAnswer: false, text: 'Too many questions in a short time. Please wait a minute and try again.' }); return; }
       if (r.status === 400 && j.error === 'too_long') { replace({ isUser: false, isNotice: true, isAnswer: false, text: 'Please keep the question under ' + j.max + ' characters.' }); return; }
-      if (!r.ok || !j.points) throw new Error('api');
+      if (!r.ok || !j.points) {
+        let why = 'The live answer service did not respond.';
+        if (r.status === 503) why = 'The AI service is not connected yet. Add GEMINI_API_KEY in the Vercel project settings (Environment Variables), then redeploy.';
+        else if (r.status === 502 && (j.status === 400 || j.status === 401 || j.status === 403)) why = 'Gemini rejected the request (code ' + j.status + '). Check that the API key and the model names in Vercel are valid.';
+        else if (r.status === 502 && j.status === 429) why = 'The Gemini quota was reached. Try again in a minute.';
+        else if (r.status === 502) why = 'The AI service returned an error' + (j.status ? ' (code ' + j.status + ')' : '') + '. Try again in a moment.';
+        const note = { isUser: false, isNotice: true, isAnswer: false, text: why };
+        const best = this.nearest(q);
+        if (best >= 0) { this.setState({ msgs: [...base, note, this.answerMsg(best, 'Closest pre-computed answer')], busy: false }); this.toChat(); }
+        else replace(note);
+        return;
+      }
       replace({
         isUser: false, isNotice: false, isAnswer: true, text: '',
         label: 'Live answer', title: q,
@@ -302,9 +313,10 @@ class Component extends DCLogic {
         samples: (j.sources || []).map((s) => ({ text: '“' + s.text + '”', meta: s.meta, dot: s.dot || DOTS[(s.meta || '').split(' · ')[0]] }))
       });
     } catch (e) {
+      const note = { isUser: false, isNotice: true, isAnswer: false, text: 'Could not reach the answer service. Check your connection and try again.' };
       const best = this.nearest(q);
-      if (best >= 0) replace(this.answerMsg(best, 'Closest pre-computed answer'));
-      else replace({ isUser: false, isNotice: true, isAnswer: false, text: 'Live answers are not available right now. Try one of the starter questions.' });
+      if (best >= 0) { this.setState({ msgs: [...base, note, this.answerMsg(best, 'Closest pre-computed answer')], busy: false }); this.toChat(); }
+      else replace(note);
     }
   }
 

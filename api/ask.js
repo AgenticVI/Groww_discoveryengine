@@ -14,20 +14,58 @@ const BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_Q = 300;
 const TOP_K = 12;
 
-// ---- load the index once per warm instance ----
+// ---- load the comments (and the optional vector index) once per warm instance ----
 let INDEX = null;
 function loadIndex() {
   if (INDEX) return INDEX;
   const root = process.cwd();
-  const meta = JSON.parse(readFileSync(join(root, 'data', 'meta.json'), 'utf8'));
-  const bin = readFileSync(join(root, 'data', 'embeddings.bin'));
-  const vecs = new Int8Array(bin.buffer, bin.byteOffset, bin.byteLength);
   const corpus = JSON.parse(readFileSync(join(root, 'public', 'sip_comments.json'), 'utf8'));
-  if (vecs.length !== meta.count * meta.dim || corpus.rows.length !== meta.count) {
-    throw new Error('Index does not match the comments file. Re-run npm run ingest.');
-  }
-  INDEX = { dim: meta.dim, count: meta.count, vecs, rows: corpus.rows, src: corpus.src, ch: corpus.ch, areas: corpus.areas };
+  let dim = 0, vecs = null;
+  try {
+    // Optional: built by `npm run ingest`. Without it the function searches by keywords instead.
+    const meta = JSON.parse(readFileSync(join(root, 'data', 'meta.json'), 'utf8'));
+    const bin = readFileSync(join(root, 'data', 'embeddings.bin'));
+    const v = new Int8Array(bin.buffer, bin.byteOffset, bin.byteLength);
+    if (v.length === meta.count * meta.dim && corpus.rows.length === meta.count) { dim = meta.dim; vecs = v; }
+  } catch { /* no vector index: keyword search */ }
+  INDEX = { dim, count: corpus.rows.length, vecs, rows: corpus.rows, src: corpus.src, ch: corpus.ch, lower: corpus.rows.map((r) => r[4].toLowerCase()) };
   return INDEX;
+}
+
+// ---- keyword search (used when there is no vector index) ----
+const STOP = new Set('the and for that this with have has had not are was were you your but from they them their will would can could should about what when which just all any out too its how why who our there here still even much many does did doing being such these those over after before because while people do is it to of in on a an i me my we be or if so at as by'.split(' '));
+function keywordTop(q, idx) {
+  const terms = [...new Set((q.toLowerCase().match(/[a-z][a-z']+/g) || []).filter((w) => w.length > 2 && !STOP.has(w)))];
+  const stems = terms.map((w) => (w.length > 5 ? w.slice(0, -2) : w));
+  const n = idx.count;
+  const df = new Array(stems.length).fill(0);
+  const hit = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = idx.lower[i];
+    const h = [];
+    for (let k = 0; k < stems.length; k++) if (t.includes(stems[k])) { h.push(k); df[k]++; }
+    hit[i] = h;
+  }
+  const scored = [];
+  for (let i = 0; i < n; i++) {
+    if (!hit[i].length) continue;
+    let s = 0;
+    for (const k of hit[i]) s += Math.log(1 + n / (1 + df[k]));
+    const len = idx.rows[i][4].length;
+    if (len < 60) s *= 0.5;
+    scored.push([s, i]);
+  }
+  scored.sort((a, b) => b[0] - a[0]);
+  const out = [];
+  const seen = new Set();
+  for (const [, i] of scored) {
+    const k = idx.lower[i].slice(0, 50);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(i);
+    if (out.length === TOP_K) break;
+  }
+  return out;
 }
 
 // ---- tiny per-instance rate limit (best effort; see README for a stronger option) ----
@@ -128,8 +166,8 @@ export default async function handler(req, res) {
 
   try {
     const idx = loadIndex();
-    const qv = await embedQuery(q, idx.dim);
-    const hitsIdx = topK(qv, idx);
+    const hitsIdx = idx.vecs ? topK(await embedQuery(q, idx.dim), idx) : keywordTop(q, idx);
+    if (!hitsIdx.length) return res.status(200).json({ points: ['No posts mention those words. Try other words, such as autopay, stop, returns, goals or mutual fund names.'], sources: [] });
     const context = hitsIdx.map((i, n) => `[${n + 1}] (${idx.src[idx.rows[i][0]]}) ${idx.rows[i][4]}`).join('\n');
 
     const g = await gemini(`${GEN_MODEL}:generateContent`, {
@@ -149,6 +187,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ points, sources: srcIdx.map((i) => cite(idx, i)) });
   } catch (e) {
     console.error('ask failed', e.status || '', e.message, e.detail || '');
-    return res.status(502).json({ error: 'upstream_error' });
+    return res.status(502).json({ error: 'upstream_error', status: e.status || 0 });
   }
 }
