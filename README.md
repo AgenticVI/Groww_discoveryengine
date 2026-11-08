@@ -25,7 +25,7 @@ Research dashboard on public posts about first SIPs, with a Gemini-powered "Ask 
 ## Notes
 
 - The key is read only inside `api/ask.js` on the server. Browsers never see it.
-- Defaults: `gemini-2.5-flash` for answers and `gemini-embedding-001` (768 dims) for search. If Google retires a name, set the env vars to a current model. If you change the embedding model, run `npm run ingest` again.
+- Defaults: `gemini-3.5-flash-lite` for answers (fast enough for the function timeout; `gemini-3.8-flash` thinks too long) and `gemini-embedding-001` (768 dims) for search. If Google retires a name, set the env vars to a current model. If you change the embedding model, run `npm run ingest` again.
 - Abuse protection: the function limits questions to 300 characters and 8 per minute per IP (per server instance). For a public link, add a stronger limit (for example Upstash Ratelimit or Vercel's Firewall rate limiting) and set a spending cap on the Google key.
 - If the API fails or the key is missing, the Ask page falls back to the closest pre-computed answer.
 - Local test: `npm i -g vercel`, copy `.env.example` to `.env.local`, run `vercel dev`.

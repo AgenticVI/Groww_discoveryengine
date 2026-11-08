@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const KEY = process.env.GEMINI_API_KEY;
-const GEN_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const GEN_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
 const BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_Q = 300;
@@ -84,7 +84,8 @@ async function gemini(path, body) {
   const r = await fetch(`${BASE}/${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-goog-api-key': KEY },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(25_000)
   });
   if (!r.ok) {
     const t = await r.text().catch(() => '');
@@ -173,9 +174,17 @@ export default async function handler(req, res) {
     const g = await gemini(`${GEN_MODEL}:generateContent`, {
       systemInstruction: { parts: [{ text: SYSTEM }] },
       contents: [{ role: 'user', parts: [{ text: `Question: ${q}\n\nPosts:\n${context}` }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 900 }
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 2048,
+        thinkingConfig: { thinkingLevel: 'LOW' }
+      }
     });
-    const text = (g.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('').trim();
+    const text = (g.candidates?.[0]?.content?.parts || [])
+      .filter((p) => p.text && !p.thought)
+      .map((p) => p.text)
+      .join('')
+      .trim();
     if (!text) return res.status(502).json({ error: 'empty_answer' });
 
     const points = text.split('\n').map((l) => l.replace(/^[-*•]\s*/, '').replace(/\s*\[\d+\]/g, '').trim()).filter(Boolean);
